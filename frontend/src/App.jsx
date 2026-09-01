@@ -1,6 +1,24 @@
+import { useEffect, useState } from 'react'
 import './App.css'
+import dessertImg from './assets/image/dessert.jpg'
 
 function App() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/products')
+      .then((response) => response.json())
+      .then((result) => {
+        setProducts(result.data)
+        setLoading(false)
+      })
+      .catch((error) => {
+        console.error('Gagal mengambil produk:', error)
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <>
       {/* NAVBAR */}
@@ -20,7 +38,9 @@ function App() {
       {/* HERO */}
       <section className="hero-section" id="home">
         <div className="hero-content">
-          <p className="small-title">SWEET MOMENTS START HERE</p>
+          <p className="small-title">
+            SWEET MOMENTS START HERE
+          </p>
 
           <h1>
             Delicious Dessert
@@ -39,7 +59,10 @@ function App() {
         </div>
 
         <div className="hero-dessert">
-          🍰
+          <img
+            src={dessertImg}
+            alt="Desserté Dessert"
+          />
         </div>
       </section>
 
@@ -49,37 +72,37 @@ function App() {
 
         <h2>Sweet Treats For You</h2>
 
-        <div className="product-container">
+        {loading ? (
+          <p>Loading products...</p>
+        ) : (
+          <div className="product-container">
+            {products.map((product) => (
+              <div
+                className="product-card"
+                key={product.id}
+              >
+                <div className="product-img">
+                  <img
+                    src={dessertImg}
+                    alt={product.name}
+                  />
+                </div>
 
-          <div className="product-card">
-            <div className="product-img">🍫</div>
+                <h3>{product.name}</h3>
 
-            <h3>Chocolate Dessert</h3>
+                <p>{product.category}</p>
 
-            <p>Rich chocolate dessert box</p>
+                <div className="product-bottom">
+                  <strong>
+                    Rp{Number(product.price).toLocaleString('id-ID')}
+                  </strong>
 
-            <div className="product-bottom">
-              <strong>Rp25.000</strong>
-
-              <button>Add to Cart</button>
-            </div>
+                  <button>Add to Cart</button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <div className="product-card">
-            <div className="product-img">🍓</div>
-
-            <h3>Strawberry Cake</h3>
-
-            <p>Fresh strawberry dessert</p>
-
-            <div className="product-bottom">
-              <strong>Rp30.000</strong>
-
-              <button>Add to Cart</button>
-            </div>
-          </div>
-
-        </div>
+        )}
       </section>
 
       {/* ABOUT */}
