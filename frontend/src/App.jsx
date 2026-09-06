@@ -1,29 +1,28 @@
-import { useEffect, useState } from 'react'
 import './App.css'
-import dessertImg from './assets/image/dessert.jpg'
+import { useEffect, useState } from 'react'
+
+import cupcake from './assets/image/cupcake.jpg'
+import dessert from './assets/image/dessert.jpg'
+import dessertBox from './assets/image/dessert-box.jpg'
 
 function App() {
   const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/products')
-      .then((response) => response.json())
-      .then((result) => {
+      .then(response => response.json())
+      .then(result => {
         setProducts(result.data)
-        setLoading(false)
       })
-      .catch((error) => {
-        console.error('Gagal mengambil produk:', error)
-        setLoading(false)
+      .catch(error => {
+        console.error('Gagal mengambil data produk:', error)
       })
   }, [])
 
   return (
     <>
-      {/* NAVBAR */}
       <nav className="navbar">
-        <div className="logo">Desserté</div>
+        <h2>Desserté</h2>
 
         <div className="nav-links">
           <a href="#home">Home</a>
@@ -32,25 +31,23 @@ function App() {
           <a href="#contact">Contact</a>
         </div>
 
-        <button className="cart-btn">🛒 Cart</button>
+        <button>🛒 Cart</button>
       </nav>
 
-      {/* HERO */}
-      <section className="hero-section" id="home">
-        <div className="hero-content">
-          <p className="small-title">
-            SWEET MOMENTS START HERE
-          </p>
+      <section className="hero" id="home">
+        <div className="hero-text">
+          <p>SWEET MOMENTS START HERE</p>
 
           <h1>
             Delicious Dessert
             <br />
-            <span>Made With Love</span>
+            Made With Love
           </h1>
 
-          <p className="hero-text">
-            Nikmati dessert box lezat dengan rasa premium
-            untuk menemani setiap momen manismu.
+          <p>
+            Nikmati berbagai dessert lezat yang dibuat
+            dengan bahan berkualitas untuk menemani
+            setiap momen manismu.
           </p>
 
           <a href="#products" className="shop-btn">
@@ -58,87 +55,76 @@ function App() {
           </a>
         </div>
 
-        <div className="hero-dessert">
-          <img
-            src={dessertImg}
-            alt="Desserté Dessert"
-          />
-        </div>
+        <img src={dessert} alt="Dessert" />
       </section>
 
-      {/* PRODUCTS */}
-      <section className="products-section" id="products">
-        <p className="small-title">OUR PRODUCTS</p>
-
+      <section className="products" id="products">
+        <p>OUR PRODUCTS</p>
         <h2>Sweet Treats For You</h2>
 
-        {loading ? (
-          <p>Loading products...</p>
-        ) : (
-          <div className="product-container">
-            {products.map((product) => (
-              <div
-                className="product-card"
-                key={product.id}
-              >
-                <div className="product-img">
-                  <img
-                    src={dessertImg}
-                    alt={product.name}
-                  />
-                </div>
+       <div className="product-container">
+  {products.map((product) => (
+    <div className="product-card" key={product.id}>
+    <img
+  src={
+    product.image
+      ? `http://127.0.0.1:8000/storage/${product.image}`
+      : product.name.toLowerCase().includes('cupcake')
+        ? cupcake
+        : dessertBox
+  }
+  alt={product.name}
+/>
 
-                <h3>{product.name}</h3>
+      <h3>{product.name}</h3>
 
-                <p>{product.category}</p>
+      <p>{product.category}</p>
 
-                <div className="product-bottom">
-                  <strong>
-                    Rp{Number(product.price).toLocaleString('id-ID')}
-                  </strong>
+      <strong>
+        Rp{Number(product.price).toLocaleString('id-ID')}
+      </strong>
 
-                  <button>Add to Cart</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <button>Add to Cart</button>
+    </div>
+  ))}
+</div>
       </section>
 
-      {/* ABOUT */}
-      <section className="about-section" id="about">
-        <div>
-          <p className="small-title">ABOUT US</p>
+<section className="about" id="about">
+  <div className="about-image">
+    <img src={dessertBox} alt="Dessert Box Desserté" />
+  </div>
 
-          <h2>Made For Your Sweetest Moments</h2>
+  <div className="about-text">
+    <p className="about-label">ABOUT DESSERTÉ</p>
 
-          <p>
-            Desserté hadir dengan berbagai pilihan dessert
-            yang dibuat dengan bahan berkualitas dan rasa
-            yang cocok untuk menemani hari-harimu.
-          </p>
-        </div>
-      </section>
+    <h2>Sweetness Made With Love</h2>
 
-      {/* CONTACT */}
-      <section className="contact-section" id="contact">
-        <p className="small-title">CONTACT US</p>
+    <p>
+      Desserté adalah toko dessert yang menghadirkan berbagai
+      pilihan makanan manis dengan rasa yang lezat dan tampilan
+      yang menarik.
+    </p>
 
-        <h2>Let's Make Your Day Sweeter</h2>
+    <p>
+      Kami menggunakan bahan berkualitas untuk menciptakan
+      dessert yang cocok dinikmati sendiri maupun bersama
+      orang-orang tersayang.
+    </p>
 
-        <p>
-          Punya pertanyaan atau ingin melakukan pemesanan?
-          Hubungi kami sekarang.
-        </p>
+    <div className="about-points">
+      <span>Fresh Dessert</span>
+      <span>♡ Made With Love</span>
+      <span>Quality Ingredients</span>
+    </div>
+  </div>
+</section>
 
-        <button>Contact Us</button>
-      </section>
 
-      {/* FOOTER */}
-      <footer>
-        <h3>Desserté</h3>
-        <p>Sweetness in every bite.</p>
-        <p>© 2026 Desserté. All rights reserved.</p>
+
+      <footer id="contact">
+        <h2>Desserté</h2>
+        <p>Sweetness in every bite 🍰</p>
       </footer>
     </>
   )
