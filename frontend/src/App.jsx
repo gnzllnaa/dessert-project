@@ -3,7 +3,7 @@ import './App.css'
 
 import dessertImg from './assets/image/dessert.jpg'
 import cupcakeImg from './assets/image/cupcake.jpg'
-import dessertBoxImg from './assets/image/dessert-box.jpg'
+import aboutImg from './assets/image/about-dessert.jpg'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -23,9 +23,9 @@ function App() {
   const [orderLoading, setOrderLoading] = useState(false)
   const [receipt, setReceipt] = useState(null)
 
-  // =========================
+  // =========================================
   // GET PRODUCTS
-  // =========================
+  // =========================================
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/products')
@@ -46,9 +46,9 @@ function App() {
       })
   }, [])
 
-  // =========================
+  // =========================================
   // CART
-  // =========================
+  // =========================================
 
   const addToCart = (product) => {
     setCart((currentCart) => {
@@ -117,9 +117,9 @@ function App() {
     0
   )
 
-  // =========================
+  // =========================================
   // RUPIAH
-  // =========================
+  // =========================================
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -129,9 +129,9 @@ function App() {
     }).format(number)
   }
 
-  // =========================
+  // =========================================
   // PRODUCT IMAGE
-  // =========================
+  // =========================================
 
   const getProductImage = (image) => {
     if (!image) {
@@ -142,14 +142,14 @@ function App() {
       return image
     }
 
-    const cleanImage = image.replace(/^storage\//, '')
+    const cleanImage = image.replace(/^storage[\\/]+/, '')
 
     return `http://127.0.0.1:8000/storage/${cleanImage}`
   }
 
-  // =========================
+  // =========================================
   // CHECKOUT
-  // =========================
+  // =========================================
 
   const openCheckout = () => {
     if (cart.length === 0) {
@@ -264,9 +264,9 @@ function App() {
     }
   }
 
-  // =========================
+  // =========================================
   // RECEIPT
-  // =========================
+  // =========================================
 
   const closeReceipt = () => {
     setReceipt(null)
@@ -276,12 +276,16 @@ function App() {
     window.print()
   }
 
+  // =========================================
+  // RETURN
+  // =========================================
+
   return (
     <div className="app">
 
-      {/* =========================
+      {/* =========================================
           NAVBAR
-      ========================= */}
+      ========================================= */}
 
       <nav className="navbar">
         <div className="logo">
@@ -289,18 +293,31 @@ function App() {
         </div>
 
         <div className="nav-links">
-          <a href="#home">Home</a>
-          <a href="#products">Products</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+          <a href="#home">
+            Home
+          </a>
+
+          <a href="#products">
+            Products
+          </a>
+
+          <a href="#about">
+            About
+          </a>
+
+          <a href="#contact">
+            Contact
+          </a>
 
           <button
+            type="button"
             className="cart-button"
             onClick={() => setShowCart(true)}
           >
             🛒 Cart (
             {cart.reduce(
-              (total, item) => total + item.quantity,
+              (total, item) =>
+                total + item.quantity,
               0
             )}
             )
@@ -308,12 +325,16 @@ function App() {
         </div>
       </nav>
 
-      {/* =========================
+      {/* =========================================
           HERO
-      ========================= */}
+      ========================================= */}
 
-      <section id="home" className="hero">
+      <section
+        id="home"
+        className="hero"
+      >
         <div className="hero-content">
+
           <p className="hero-small">
             SWEET MOMENTS START HERE
           </p>
@@ -335,6 +356,7 @@ function App() {
           >
             See Our Desserts
           </a>
+
         </div>
 
         <div className="hero-image">
@@ -345,16 +367,18 @@ function App() {
         </div>
       </section>
 
-      {/* =========================
+      {/* =========================================
           PRODUCTS
-      ========================= */}
+      ========================================= */}
 
       <section
         id="products"
         className="products-section"
       >
         <div className="section-title">
-          <p>OUR MENU</p>
+          <p>
+            OUR MENU
+          </p>
 
           <h2>
             Favorite Desserts
@@ -371,6 +395,7 @@ function App() {
           </p>
         ) : (
           <div className="product-grid">
+
             {products.map((product) => {
               const productImage =
                 getProductImage(product.image)
@@ -380,6 +405,7 @@ function App() {
                   className="product-card"
                   key={product.id}
                 >
+
                   <div className="product-image">
                     {productImage ? (
                       <img
@@ -394,6 +420,7 @@ function App() {
                   </div>
 
                   <div className="product-info">
+
                     <span className="category">
                       {product.category || 'Dessert'}
                     </span>
@@ -407,6 +434,7 @@ function App() {
                     </p>
 
                     <button
+                      type="button"
                       className="add-button"
                       onClick={() =>
                         addToCart(product)
@@ -414,83 +442,181 @@ function App() {
                     >
                       Add to Cart
                     </button>
+
                   </div>
                 </div>
               )
             })}
+
           </div>
         )}
       </section>
 
-      {/* =========================
-          ABOUT
-      ========================= */}
+     {/* =========================================
+    ABOUT
+========================================= */}
 
-      <section
-        id="about"
-        className="about-section"
-      >
-        <div className="about-image">
-          <img
-            src={dessertBoxImg}
-            alt="Dessert Box"
-          />
-        </div>
+<section
+  id="about"
+  className="about-section"
+>
+  <div className="about-image">
+    <img
+      src={aboutImg}
+      alt="Desserté"
+    />
+  </div>
 
-        <div className="about-content">
-          <p className="section-label">
-            ABOUT US
-          </p>
+  <div className="about-content">
+    <p className="section-label">
+      ABOUT US
+    </p>
 
-          <h2>
-            Sweet things,
-            <br />
-            made with love.
-          </h2>
+    <h2>
+      Sweet things,
+      <br />
+      made with love.
+    </h2>
 
-          <p>
-            Desserté adalah tempat untuk menemukan
-            berbagai dessert manis dengan rasa yang
-            menyenangkan dan cocok untuk berbagai
-            momen.
-          </p>
-        </div>
-      </section>
-
-      {/* =========================
+    <p>
+      Desserté adalah tempat untuk menemukan
+      berbagai dessert manis dengan rasa yang
+      menyenangkan dan cocok untuk berbagai
+      momen.
+    </p>
+  </div>
+</section>
+      {/* =========================================
           CONTACT
-      ========================= */}
+      ========================================= */}
 
       <section
         id="contact"
         className="contact-section"
       >
+
         <div className="contact-content">
-          <p className="section-label">
-            CONTACT
+
+          <p className="section-label contact-label">
+            COME & SAY HELLO
           </p>
 
           <h2>
-            Let's make your day sweeter.
+            Visit Desserté
           </h2>
 
-          <p>
-            Pesan dessert favoritmu melalui website
-            Desserté.
+          <p className="contact-description">
+            Mau menikmati dessert langsung atau punya
+            pertanyaan? Kami siap menyambutmu dengan
+            dessert manis dan pelayanan terbaik.
           </p>
-        </div>
 
-        <div className="contact-image">
-          <img
-            src={cupcakeImg}
-            alt="Cupcake"
-          />
+          <div className="contact-info">
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                📍
+              </div>
+
+              <h3>
+                Our Address
+              </h3>
+
+              <p>
+                Jl. Raya Desserté No. 25
+                <br />
+                Semarang, Jawa Tengah
+              </p>
+            </div>
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                🕐
+              </div>
+
+              <h3>
+                Opening Hours
+              </h3>
+
+              <p>
+                Monday – Saturday
+                <br />
+                09.00 – 20.00 WIB
+                <br />
+                Sunday 10.00 – 18.00 WIB
+              </p>
+            </div>
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                📱
+              </div>
+
+              <h3>
+                WhatsApp
+              </h3>
+
+              <p>
+                +62 812-3456-7890
+                <br />
+                Ready to help you
+              </p>
+            </div>
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                ✉️
+              </div>
+
+              <h3>
+                Email
+              </h3>
+
+              <p>
+                hello@desserté.com
+                <br />
+                We reply as soon as possible
+              </p>
+            </div>
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                🍰
+              </div>
+
+              <h3>
+                Fresh Every Day
+              </h3>
+
+              <p>
+                Our desserts are freshly prepared
+                every day with quality ingredients.
+              </p>
+            </div>
+
+            <div className="contact-item">
+              <div className="contact-icon">
+                ♡
+              </div>
+
+              <h3>
+                Made With Love
+              </h3>
+
+              <p>
+                Every dessert is made carefully
+                to make your moments sweeter.
+              </p>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
-      {/* =========================
+      {/* =========================================
           FOOTER
-      ========================= */}
+      ========================================= */}
 
       <footer>
         <p>
@@ -498,49 +624,71 @@ function App() {
         </p>
       </footer>
 
-      {/* =========================
+      {/* =========================================
           CART
-      ========================= */}
+      ========================================= */}
 
       {showCart && (
-        <div className="overlay">
+        <div className="cart-overlay">
+
           <div className="cart-modal">
 
             <button
+              type="button"
               className="close-button"
               onClick={() => setShowCart(false)}
             >
               ×
             </button>
 
-            <h2>
-              Keranjang
-            </h2>
+            <div className="cart-header">
+              <p>
+                YOUR ORDER
+              </p>
+
+              <h2>
+                Keranjang
+              </h2>
+            </div>
 
             {cart.length === 0 ? (
-              <p className="empty-cart">
-                Keranjang masih kosong.
-              </p>
+              <div className="empty-cart">
+                <div className="empty-cart-icon">
+                  🛒
+                </div>
+
+                <h3>
+                  Keranjang masih kosong
+                </h3>
+
+                <p>
+                  Yuk pilih dessert favoritmu!
+                </p>
+              </div>
             ) : (
               <>
                 <div className="cart-items">
+
                   {cart.map((item) => (
                     <div
                       className="cart-item"
                       key={item.id}
                     >
-                      <div>
-                        <h3>
+
+                      <div className="cart-item-info">
+                        <h4>
                           {item.name}
-                        </h3>
+                        </h4>
 
                         <p>
                           {formatRupiah(item.price)}
                         </p>
                       </div>
 
-                      <div className="quantity-control">
+                      <div className="quantity-controls">
+
                         <button
+                          type="button"
                           onClick={() =>
                             decreaseQuantity(item.id)
                           }
@@ -553,15 +701,18 @@ function App() {
                         </span>
 
                         <button
+                          type="button"
                           onClick={() =>
                             increaseQuantity(item.id)
                           }
                         >
                           +
                         </button>
+
                       </div>
 
                       <button
+                        type="button"
                         className="remove-button"
                         onClick={() =>
                           removeFromCart(item.id)
@@ -569,8 +720,10 @@ function App() {
                       >
                         Hapus
                       </button>
+
                     </div>
                   ))}
+
                 </div>
 
                 <div className="cart-total">
@@ -584,6 +737,7 @@ function App() {
                 </div>
 
                 <button
+                  type="button"
                   className="checkout-button"
                   onClick={openCheckout}
                 >
@@ -591,20 +745,23 @@ function App() {
                 </button>
               </>
             )}
+
           </div>
         </div>
       )}
 
-      {/* =========================
+      {/* =========================================
           CHECKOUT
-      ========================= */}
+      ========================================= */}
 
       {showCheckout && (
-        <div className="overlay">
+        <div className="checkout-overlay">
+
           <div className="checkout-modal">
 
             <button
-              className="close-button"
+              type="button"
+              className="close-button checkout-close"
               onClick={() =>
                 setShowCheckout(false)
               }
@@ -612,240 +769,385 @@ function App() {
               ×
             </button>
 
-            <h2>
-              Checkout
-            </h2>
+            <div className="checkout-header">
 
-            <p className="checkout-description">
-              Isi data berikut untuk menyelesaikan pesanan.
-            </p>
+              <p className="checkout-eyebrow">
+                DESSERTÉ ORDER
+              </p>
 
-            <form onSubmit={confirmOrder}>
+              <h2>
+                Checkout
+              </h2>
 
-              <label>
-                Nama Lengkap
-              </label>
+              <p className="checkout-description">
+                Lengkapi detail pesananmu dan pilih
+                metode pembayaran.
+              </p>
 
-              <input
-                type="text"
-                value={customerName}
-                onChange={(event) =>
-                  setCustomerName(event.target.value)
-                }
-                placeholder="Masukkan nama"
-              />
+            </div>
 
-              <label>
-                Nomor HP
-              </label>
+            <form
+              className="checkout-form"
+              onSubmit={confirmOrder}
+            >
 
-              <input
-                type="tel"
-                value={phone}
-                onChange={(event) =>
-                  setPhone(event.target.value)
-                }
-                placeholder="08xxxxxxxxxx"
-              />
+              {/* CUSTOMER INFORMATION */}
 
-              <label>
-                Alamat
-              </label>
+              <div className="checkout-section">
 
-              <textarea
-                value={address}
-                onChange={(event) =>
-                  setAddress(event.target.value)
-                }
-                placeholder="Masukkan alamat lengkap"
-                rows="4"
-              />
+                <div className="checkout-section-title">
 
-              {/* =========================
-                  PAYMENT METHOD
-              ========================= */}
+                  <span className="checkout-number">
+                    01
+                  </span>
 
-              <div className="payment-method-section">
-                <p className="payment-method-title">
-                  Metode Pembayaran
-                </p>
+                  <div>
+                    <h3>
+                      Informasi Pemesan
+                    </h3>
 
-                <div className="payment-options">
+                    <p>
+                      Isi data untuk pengiriman pesanan.
+                    </p>
+                  </div>
 
-                  {/* E-WALLET */}
+                </div>
 
-                  <label
-                    className={`payment-option ${
-                      paymentMethod === 'E-Wallet'
-                        ? 'active'
-                        : ''
-                    }`}
-                  >
+                <div className="checkout-fields">
+
+                  <div className="checkout-field">
+
+                    <label htmlFor="customerName">
+                      Nama Lengkap
+                    </label>
+
                     <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="E-Wallet"
-                      checked={
-                        paymentMethod === 'E-Wallet'
-                      }
-                      onChange={(event) => {
-                        setPaymentMethod(
+                      id="customerName"
+                      type="text"
+                      value={customerName}
+                      onChange={(event) =>
+                        setCustomerName(
                           event.target.value
                         )
-                        setPaymentOption('')
-                      }}
+                      }
+                      placeholder="Masukkan nama lengkap"
                     />
 
-                    <div>
-                      <strong>
-                        E-Wallet
-                      </strong>
+                  </div>
 
-                      <span>
-                        GoPay, OVO, DANA, ShopeePay
-                      </span>
-                    </div>
-                  </label>
+                  <div className="checkout-field">
 
-                  {paymentMethod === 'E-Wallet' && (
-                    <div className="payment-sub-options">
-                      <p className="payment-sub-title">
-                        Pilih E-Wallet
-                      </p>
+                    <label htmlFor="phone">
+                      Nomor HP
+                    </label>
 
-                      {[
-                        'GoPay',
-                        'OVO',
-                        'DANA',
-                        'ShopeePay',
-                      ].map((option) => (
-                        <label
-                          key={option}
-                          className={`payment-sub-option ${
-                            paymentOption === option
-                              ? 'active'
-                              : ''
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="paymentOption"
-                            value={option}
-                            checked={
-                              paymentOption === option
-                            }
-                            onChange={(event) =>
-                              setPaymentOption(
-                                event.target.value
-                              )
-                            }
-                          />
-
-                          <span>
-                            {option}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* TRANSFER BANK */}
-
-                  <label
-                    className={`payment-option ${
-                      paymentMethod === 'Transfer Bank'
-                        ? 'active'
-                        : ''
-                    }`}
-                  >
                     <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="Transfer Bank"
-                      checked={
-                        paymentMethod === 'Transfer Bank'
-                      }
-                      onChange={(event) => {
-                        setPaymentMethod(
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(event) =>
+                        setPhone(
                           event.target.value
                         )
-                        setPaymentOption('')
-                      }}
+                      }
+                      placeholder="08xxxxxxxxxx"
                     />
 
-                    <div>
-                      <strong>
-                        Transfer Bank
-                      </strong>
+                  </div>
 
-                      <span>
-                        BCA, BRI, BNI, Mandiri
-                      </span>
-                    </div>
-                  </label>
+                  <div className="checkout-field">
 
-                  {paymentMethod === 'Transfer Bank' && (
-                    <div className="payment-sub-options">
-                      <p className="payment-sub-title">
-                        Pilih Bank
-                      </p>
+                    <label htmlFor="address">
+                      Alamat Pengiriman
+                    </label>
 
-                      {[
-                        'BCA',
-                        'BRI',
-                        'BNI',
-                        'Mandiri',
-                      ].map((option) => (
-                        <label
-                          key={option}
-                          className={`payment-sub-option ${
-                            paymentOption === option
-                              ? 'active'
-                              : ''
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="paymentOption"
-                            value={option}
-                            checked={
-                              paymentOption === option
-                            }
-                            onChange={(event) =>
-                              setPaymentOption(
-                                event.target.value
-                              )
-                            }
-                          />
+                    <textarea
+                      id="address"
+                      value={address}
+                      onChange={(event) =>
+                        setAddress(
+                          event.target.value
+                        )
+                      }
+                      placeholder="Masukkan alamat lengkap"
+                      rows="4"
+                    />
 
-                          <span>
-                            {option}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                  </div>
 
                 </div>
               </div>
 
-              {/* =========================
-                  TOTAL
-              ========================= */}
+              {/* PAYMENT */}
+
+              <div className="checkout-section">
+
+                <div className="checkout-section-title">
+
+                  <span className="checkout-number">
+                    02
+                  </span>
+
+                  <div>
+                    <h3>
+                      Pembayaran
+                    </h3>
+
+                    <p>
+                      Pilih metode pembayaran yang tersedia.
+                    </p>
+                  </div>
+
+                </div>
+
+                <div className="payment-method-section">
+
+                  <p className="payment-method-title">
+                    Metode Pembayaran
+                  </p>
+
+                  <div className="payment-options">
+
+                    {/* E-WALLET */}
+
+                    <label
+                      className={`payment-option ${
+                        paymentMethod === 'E-Wallet'
+                          ? 'active'
+                          : ''
+                      }`}
+                    >
+
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="E-Wallet"
+                        checked={
+                          paymentMethod === 'E-Wallet'
+                        }
+                        onChange={(event) => {
+                          setPaymentMethod(
+                            event.target.value
+                          )
+                          setPaymentOption('')
+                        }}
+                      />
+
+                      <div className="payment-option-content">
+
+                        <div className="payment-option-icon">
+                          ◉
+                        </div>
+
+                        <div>
+                          <strong>
+                            E-Wallet
+                          </strong>
+
+                          <span>
+                            GoPay, OVO, DANA, ShopeePay
+                          </span>
+                        </div>
+
+                      </div>
+
+                      <span className="payment-check">
+                        ✓
+                      </span>
+
+                    </label>
+
+                    {paymentMethod === 'E-Wallet' && (
+                      <div className="payment-sub-options">
+
+                        <p className="payment-sub-title">
+                          Pilih E-Wallet
+                        </p>
+
+                        <div className="payment-sub-grid">
+
+                          {[
+                            'GoPay',
+                            'OVO',
+                            'DANA',
+                            'ShopeePay',
+                          ].map((option) => (
+                            <label
+                              key={option}
+                              className={`payment-sub-option ${
+                                paymentOption === option
+                                  ? 'active'
+                                  : ''
+                              }`}
+                            >
+
+                              <input
+                                type="radio"
+                                name="paymentOption"
+                                value={option}
+                                checked={
+                                  paymentOption === option
+                                }
+                                onChange={(event) =>
+                                  setPaymentOption(
+                                    event.target.value
+                                  )
+                                }
+                              />
+
+                              <span>
+                                {option}
+                              </span>
+
+                              {paymentOption === option && (
+                                <b>
+                                  ✓
+                                </b>
+                              )}
+
+                            </label>
+                          ))}
+
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TRANSFER BANK */}
+
+                    <label
+                      className={`payment-option ${
+                        paymentMethod === 'Transfer Bank'
+                          ? 'active'
+                          : ''
+                      }`}
+                    >
+
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Transfer Bank"
+                        checked={
+                          paymentMethod === 'Transfer Bank'
+                        }
+                        onChange={(event) => {
+                          setPaymentMethod(
+                            event.target.value
+                          )
+                          setPaymentOption('')
+                        }}
+                      />
+
+                      <div className="payment-option-content">
+
+                        <div className="payment-option-icon">
+                          ▣
+                        </div>
+
+                        <div>
+                          <strong>
+                            Transfer Bank
+                          </strong>
+
+                          <span>
+                            BCA, BRI, BNI, Mandiri
+                          </span>
+                        </div>
+
+                      </div>
+
+                      <span className="payment-check">
+                        ✓
+                      </span>
+
+                    </label>
+
+                    {paymentMethod === 'Transfer Bank' && (
+                      <div className="payment-sub-options">
+
+                        <p className="payment-sub-title">
+                          Pilih Bank
+                        </p>
+
+                        <div className="payment-sub-grid">
+
+                          {[
+                            'BCA',
+                            'BRI',
+                            'BNI',
+                            'Mandiri',
+                          ].map((option) => (
+                            <label
+                              key={option}
+                              className={`payment-sub-option ${
+                                paymentOption === option
+                                  ? 'active'
+                                  : ''
+                              }`}
+                            >
+
+                              <input
+                                type="radio"
+                                name="paymentOption"
+                                value={option}
+                                checked={
+                                  paymentOption === option
+                                }
+                                onChange={(event) =>
+                                  setPaymentOption(
+                                    event.target.value
+                                  )
+                                }
+                              />
+
+                              <span>
+                                {option}
+                              </span>
+
+                              {paymentOption === option && (
+                                <b>
+                                  ✓
+                                </b>
+                              )}
+
+                            </label>
+                          ))}
+
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+
+              {/* TOTAL */}
 
               <div className="checkout-summary">
-                <span>
-                  Total Pesanan
-                </span>
+
+                <div>
+                  <span>
+                    Total Pesanan
+                  </span>
+
+                  <small>
+                    {cart.reduce(
+                      (total, item) =>
+                        total + item.quantity,
+                      0
+                    )}{' '}
+                    item
+                  </small>
+                </div>
 
                 <strong>
                   {formatRupiah(totalPrice)}
                 </strong>
+
               </div>
 
               <button
                 type="submit"
-                className="checkout-button"
+                className="confirm-order-button"
                 disabled={orderLoading}
               >
                 {orderLoading
@@ -853,17 +1155,24 @@ function App() {
                   : 'Buat Pesanan'}
               </button>
 
+              <p className="checkout-note">
+                Dengan melanjutkan pesanan, pastikan data
+                yang kamu masukkan sudah benar.
+              </p>
+
             </form>
+
           </div>
         </div>
       )}
 
-      {/* =========================
+      {/* =========================================
           RECEIPT
-      ========================= */}
+      ========================================= */}
 
       {receipt && (
-        <div className="overlay receipt-overlay">
+        <div className="receipt-overlay">
+
           <div className="receipt-modal">
 
             <div className="receipt-header">
@@ -882,7 +1191,7 @@ function App() {
 
             <div className="receipt-info">
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   No. Pesanan
                 </span>
@@ -892,7 +1201,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   Nama
                 </span>
@@ -902,7 +1211,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   No. HP
                 </span>
@@ -912,7 +1221,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   Alamat
                 </span>
@@ -922,7 +1231,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   Payment
                 </span>
@@ -932,7 +1241,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   Payment Option
                 </span>
@@ -942,7 +1251,7 @@ function App() {
                 </strong>
               </div>
 
-              <div>
+              <div className="receipt-line">
                 <span>
                   Status
                 </span>
@@ -954,15 +1263,15 @@ function App() {
 
             </div>
 
-            <div className="receipt-line"></div>
-
             <div className="receipt-products">
+
               {(receipt.items || []).map(
                 (item, index) => (
                   <div
                     className="receipt-product"
                     key={`${item.product_id}-${index}`}
                   >
+
                     <div>
                       <strong>
                         {item.product_name}
@@ -981,14 +1290,15 @@ function App() {
                         item.subtotal
                       )}
                     </strong>
+
                   </div>
                 )
               )}
+
             </div>
 
-            <div className="receipt-line"></div>
-
             <div className="receipt-total">
+
               <span>
                 Total
               </span>
@@ -996,6 +1306,7 @@ function App() {
               <strong>
                 {formatRupiah(receipt.total)}
               </strong>
+
             </div>
 
             <p className="receipt-thanks">
@@ -1003,7 +1314,9 @@ function App() {
             </p>
 
             <div className="receipt-actions">
+
               <button
+                type="button"
                 className="print-button"
                 onClick={printReceipt}
               >
@@ -1011,11 +1324,13 @@ function App() {
               </button>
 
               <button
+                type="button"
                 className="close-receipt-button"
                 onClick={closeReceipt}
               >
                 Selesai
               </button>
+
             </div>
 
           </div>
