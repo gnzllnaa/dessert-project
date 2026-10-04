@@ -1,43 +1,63 @@
-import './App.css'
 import { useEffect, useState } from 'react'
+import './App.css'
 
-import cupcake from './assets/image/cupcake.jpg'
-import dessert from './assets/image/dessert.jpg'
-import dessertBox from './assets/image/dessert-box.jpg'
+import dessertImg from './assets/image/dessert.jpg'
+import cupcakeImg from './assets/image/cupcake.jpg'
+import dessertBoxImg from './assets/image/dessert-box.jpg'
 
 function App() {
   const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
   const [cart, setCart] = useState([])
   const [showCart, setShowCart] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
 
-  // Data checkout
   const [customerName, setCustomerName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
-  const [orderLoading, setOrderLoading] = useState(false)
 
-  // Ambil data produk dari Laravel
+  const [paymentMethod, setPaymentMethod] = useState('')
+  const [paymentOption, setPaymentOption] = useState('')
+
+  const [orderLoading, setOrderLoading] = useState(false)
+  const [receipt, setReceipt] = useState(null)
+
+  // =========================
+  // GET PRODUCTS
+  // =========================
+
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/products')
-      .then(response => response.json())
-      .then(result => {
-        setProducts(result.data)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Gagal mengambil produk')
+        }
+
+        return response.json()
       })
-      .catch(error => {
-        console.error('Gagal mengambil data produk:', error)
+      .then((result) => {
+        setProducts(result.data ?? result)
+        setLoading(false)
+      })
+      .catch((error) => {
+        console.error(error)
+        setLoading(false)
       })
   }, [])
 
-  // Tambah produk ke cart
+  // =========================
+  // CART
+  // =========================
+
   const addToCart = (product) => {
-    setCart(currentCart => {
+    setCart((currentCart) => {
       const existingProduct = currentCart.find(
-        item => item.id === product.id
+        (item) => item.id === product.id
       )
 
       if (existingProduct) {
-        return currentCart.map(item =>
+        return currentCart.map((item) =>
           item.id === product.id
             ? {
                 ...item,
@@ -57,11 +77,10 @@ function App() {
     })
   }
 
-  // Tambah quantity
-  const increaseQuantity = (productId) => {
-    setCart(currentCart =>
-      currentCart.map(item =>
-        item.id === productId
+  const increaseQuantity = (id) => {
+    setCart((currentCart) =>
+      currentCart.map((item) =>
+        item.id === id
           ? {
               ...item,
               quantity: item.quantity + 1,
@@ -71,46 +90,102 @@ function App() {
     )
   }
 
-  // Kurangi quantity
-  const decreaseQuantity = (productId) => {
-    setCart(currentCart =>
+  const decreaseQuantity = (id) => {
+    setCart((currentCart) =>
       currentCart
-        .map(item =>
-          item.id === productId
+        .map((item) =>
+          item.id === id
             ? {
                 ...item,
                 quantity: item.quantity - 1,
               }
             : item
         )
-        .filter(item => item.quantity > 0)
+        .filter((item) => item.quantity > 0)
     )
   }
 
-  // Hapus produk dari cart
-  const removeFromCart = (productId) => {
-    setCart(currentCart =>
-      currentCart.filter(item => item.id !== productId)
+  const removeFromCart = (id) => {
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.id !== id)
     )
   }
 
-  // Hitung jumlah semua produk di cart
-  const totalItems = cart.reduce(
-    (total, item) => total + item.quantity,
-    0
-  )
-
-  // Hitung total harga
   const totalPrice = cart.reduce(
     (total, item) =>
-      total + Number(item.price) * item.quantity,
+      total + Number(item.price) * Number(item.quantity),
     0
   )
 
-  // Kirim pesanan ke Laravel
-  const confirmOrder = async () => {
-    if (!customerName.trim() || !phone.trim() || !address.trim()) {
-      alert('Lengkapi data pemesanan terlebih dahulu.')
+  // =========================
+  // RUPIAH
+  // =========================
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(number)
+  }
+
+  // =========================
+  // PRODUCT IMAGE
+  // =========================
+
+  const getProductImage = (image) => {
+    if (!image) {
+      return null
+    }
+
+    if (image.startsWith('http')) {
+      return image
+    }
+
+    const cleanImage = image.replace(/^storage\//, '')
+
+    return `http://127.0.0.1:8000/storage/${cleanImage}`
+  }
+
+  // =========================
+  // CHECKOUT
+  // =========================
+
+  const openCheckout = () => {
+    if (cart.length === 0) {
+      alert('Keranjang masih kosong.')
+      return
+    }
+
+    setShowCart(false)
+    setShowCheckout(true)
+  }
+
+  const confirmOrder = async (event) => {
+    event.preventDefault()
+
+    if (!customerName.trim()) {
+      alert('Nama wajib diisi.')
+      return
+    }
+
+    if (!phone.trim()) {
+      alert('Nomor HP wajib diisi.')
+      return
+    }
+
+    if (!address.trim()) {
+      alert('Alamat wajib diisi.')
+      return
+    }
+
+    if (!paymentMethod) {
+      alert('Silakan pilih metode pembayaran.')
+      return
+    }
+
+    if (!paymentOption) {
+      alert('Silakan pilih opsi pembayaran.')
       return
     }
 
@@ -128,16 +203,18 @@ function App() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
           body: JSON.stringify({
             customer_name: customerName,
             phone: phone,
             address: address,
-            items: cart.map(item => ({
-              product_id: item.id,
+            payment_method: paymentMethod,
+            payment_option: paymentOption,
+            items: cart.map((item) => ({
+              id: item.id,
               quantity: item.quantity,
-              unit_price: item.price,
+              price: Number(item.price),
             })),
           }),
         }
@@ -146,184 +223,321 @@ function App() {
       const result = await response.json()
 
       if (!response.ok) {
-        console.error('Response Laravel:', result)
+        console.error(result)
 
         if (result.errors) {
-          alert('Data pesanan tidak valid. Cek kembali data yang diisi.')
+          const firstError =
+            Object.values(result.errors)[0]?.[0]
+
+          alert(firstError || 'Data pesanan tidak valid.')
         } else {
-          alert('Pesanan gagal disimpan.')
+          alert(result.message || 'Pesanan gagal dibuat.')
         }
 
         return
       }
 
-      alert(
-        `Pesanan berhasil! ID Pesanan: #${result.data.id}`
-      )
+      if (!result.success || !result.order) {
+        alert('Pesanan gagal dibuat.')
+        return
+      }
 
-      // Kosongkan cart dan form
+      setReceipt(result.order)
+
       setCart([])
       setCustomerName('')
       setPhone('')
       setAddress('')
-      setShowCheckout(false)
+      setPaymentMethod('')
+      setPaymentOption('')
 
+      setShowCheckout(false)
+      setShowCart(false)
     } catch (error) {
-      console.error('Error:', error)
-      alert('Tidak dapat terhubung ke server Laravel.')
+      console.error(error)
+
+      alert(
+        'Tidak dapat terhubung ke server. Pastikan Laravel sedang berjalan.'
+      )
     } finally {
       setOrderLoading(false)
     }
   }
 
+  // =========================
+  // RECEIPT
+  // =========================
+
+  const closeReceipt = () => {
+    setReceipt(null)
+  }
+
+  const printReceipt = () => {
+    window.print()
+  }
+
   return (
-    <>
-      {/* NAVBAR */}
+    <div className="app">
+
+      {/* =========================
+          NAVBAR
+      ========================= */}
+
       <nav className="navbar">
-        <h2>Desserté</h2>
+        <div className="logo">
+          Desserté
+        </div>
 
         <div className="nav-links">
           <a href="#home">Home</a>
           <a href="#products">Products</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
-        </div>
 
-        <button onClick={() => setShowCart(true)}>
-          🛒 Cart ({totalItems})
-        </button>
+          <button
+            className="cart-button"
+            onClick={() => setShowCart(true)}
+          >
+            🛒 Cart (
+            {cart.reduce(
+              (total, item) => total + item.quantity,
+              0
+            )}
+            )
+          </button>
+        </div>
       </nav>
 
-      {/* HERO */}
-      <section className="hero" id="home">
-        <div className="hero-text">
-          <p>SWEET MOMENTS START HERE</p>
+      {/* =========================
+          HERO
+      ========================= */}
+
+      <section id="home" className="hero">
+        <div className="hero-content">
+          <p className="hero-small">
+            SWEET MOMENTS START HERE
+          </p>
 
           <h1>
             Delicious Dessert
             <br />
-            Made With Love
+            For Every Moment
           </h1>
 
-          <p>
-            Nikmati berbagai dessert lezat yang dibuat
-            dengan bahan berkualitas untuk menemani
-            setiap momen manismu.
+          <p className="hero-description">
+            Nikmati berbagai dessert manis dan lezat
+            yang dibuat untuk menemani harimu.
           </p>
 
-          <a href="#products" className="shop-btn">
-            Shop Now
+          <a
+            href="#products"
+            className="hero-button"
+          >
+            See Our Desserts
           </a>
         </div>
 
-        <img src={dessert} alt="Dessert" />
-      </section>
-
-      {/* PRODUCTS */}
-      <section className="products" id="products">
-        <p>OUR PRODUCTS</p>
-        <h2>Sweet Treats For You</h2>
-
-        <div className="product-container">
-          {products.map((product) => (
-            <div className="product-card" key={product.id}>
-              <img
-                src={
-                  product.image
-                    ? `http://127.0.0.1:8000/storage/${product.image}`
-                    : product.name.toLowerCase().includes('cupcake')
-                      ? cupcake
-                      : dessertBox
-                }
-                alt={product.name}
-              />
-
-              <h3>{product.name}</h3>
-
-              <p>{product.category}</p>
-
-              <strong>
-                Rp{Number(product.price).toLocaleString('id-ID')}
-              </strong>
-
-              <button onClick={() => addToCart(product)}>
-                Add to Cart
-              </button>
-            </div>
-          ))}
+        <div className="hero-image">
+          <img
+            src={dessertImg}
+            alt="Dessert"
+          />
         </div>
       </section>
 
-      {/* ABOUT */}
-      <section className="about" id="about">
-        <div className="about-image">
-          <img src={dessertBox} alt="Dessert Box Desserté" />
+      {/* =========================
+          PRODUCTS
+      ========================= */}
+
+      <section
+        id="products"
+        className="products-section"
+      >
+        <div className="section-title">
+          <p>OUR MENU</p>
+
+          <h2>
+            Favorite Desserts
+          </h2>
         </div>
 
-        <div className="about-text">
-          <p className="about-label">ABOUT DESSERTÉ</p>
-
-          <h2>Sweetness Made With Love</h2>
-
-          <p>
-            Desserté adalah toko dessert yang menghadirkan berbagai
-            pilihan makanan manis dengan rasa yang lezat dan tampilan
-            yang menarik.
+        {loading ? (
+          <p className="loading">
+            Loading products...
           </p>
-
-          <p>
-            Kami menggunakan bahan berkualitas untuk menciptakan
-            dessert yang cocok dinikmati sendiri maupun bersama
-            orang-orang tersayang.
+        ) : products.length === 0 ? (
+          <p className="loading">
+            Belum ada produk.
           </p>
+        ) : (
+          <div className="product-grid">
+            {products.map((product) => {
+              const productImage =
+                getProductImage(product.image)
 
-          <div className="about-points">
-            <span>Fresh Dessert</span>
-            <span>♡ Made With Love</span>
-            <span>Quality Ingredients</span>
+              return (
+                <div
+                  className="product-card"
+                  key={product.id}
+                >
+                  <div className="product-image">
+                    {productImage ? (
+                      <img
+                        src={productImage}
+                        alt={product.name}
+                      />
+                    ) : (
+                      <div className="no-image">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="product-info">
+                    <span className="category">
+                      {product.category || 'Dessert'}
+                    </span>
+
+                    <h3>
+                      {product.name}
+                    </h3>
+
+                    <p className="price">
+                      {formatRupiah(product.price)}
+                    </p>
+
+                    <button
+                      className="add-button"
+                      onClick={() =>
+                        addToCart(product)
+                      }
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
+        )}
+      </section>
+
+      {/* =========================
+          ABOUT
+      ========================= */}
+
+      <section
+        id="about"
+        className="about-section"
+      >
+        <div className="about-image">
+          <img
+            src={dessertBoxImg}
+            alt="Dessert Box"
+          />
+        </div>
+
+        <div className="about-content">
+          <p className="section-label">
+            ABOUT US
+          </p>
+
+          <h2>
+            Sweet things,
+            <br />
+            made with love.
+          </h2>
+
+          <p>
+            Desserté adalah tempat untuk menemukan
+            berbagai dessert manis dengan rasa yang
+            menyenangkan dan cocok untuk berbagai
+            momen.
+          </p>
         </div>
       </section>
 
-      {/* CART POP-UP */}
+      {/* =========================
+          CONTACT
+      ========================= */}
+
+      <section
+        id="contact"
+        className="contact-section"
+      >
+        <div className="contact-content">
+          <p className="section-label">
+            CONTACT
+          </p>
+
+          <h2>
+            Let's make your day sweeter.
+          </h2>
+
+          <p>
+            Pesan dessert favoritmu melalui website
+            Desserté.
+          </p>
+        </div>
+
+        <div className="contact-image">
+          <img
+            src={cupcakeImg}
+            alt="Cupcake"
+          />
+        </div>
+      </section>
+
+      {/* =========================
+          FOOTER
+      ========================= */}
+
+      <footer>
+        <p>
+          © 2026 Desserté. All rights reserved.
+        </p>
+      </footer>
+
+      {/* =========================
+          CART
+      ========================= */}
+
       {showCart && (
-        <div className="modal-overlay">
+        <div className="overlay">
           <div className="cart-modal">
 
             <button
-              className="close-modal"
+              className="close-button"
               onClick={() => setShowCart(false)}
             >
-              ✕
+              ×
             </button>
 
-            <h2>Your Cart 🛒</h2>
-
-            <p className="modal-subtitle">
-              Your sweet treats
-            </p>
+            <h2>
+              Keranjang
+            </h2>
 
             {cart.length === 0 ? (
-              <div className="empty-cart">
-                <span>🧁</span>
-                <p>Keranjang kamu masih kosong</p>
-              </div>
+              <p className="empty-cart">
+                Keranjang masih kosong.
+              </p>
             ) : (
               <>
-                <div className="cart-list">
+                <div className="cart-items">
                   {cart.map((item) => (
-                    <div className="cart-item" key={item.id}>
+                    <div
+                      className="cart-item"
+                      key={item.id}
+                    >
                       <div>
-                        <span>{item.name}</span>
-                        <small>{item.category}</small>
-                      </div>
+                        <h3>
+                          {item.name}
+                        </h3>
 
-                      <strong>
-                        Rp
-                        {(
-                          Number(item.price) * item.quantity
-                        ).toLocaleString('id-ID')}
-                      </strong>
+                        <p>
+                          {formatRupiah(item.price)}
+                        </p>
+                      </div>
 
                       <div className="quantity-control">
                         <button
@@ -334,7 +548,9 @@ function App() {
                           −
                         </button>
 
-                        <span>{item.quantity}</span>
+                        <span>
+                          {item.quantity}
+                        </span>
 
                         <button
                           onClick={() =>
@@ -346,33 +562,32 @@ function App() {
                       </div>
 
                       <button
-                        className="remove-btn"
+                        className="remove-button"
                         onClick={() =>
                           removeFromCart(item.id)
                         }
                       >
-                        ✕
+                        Hapus
                       </button>
                     </div>
                   ))}
                 </div>
 
                 <div className="cart-total">
-                  <span>Total</span>
+                  <span>
+                    Total
+                  </span>
 
                   <strong>
-                    Rp{totalPrice.toLocaleString('id-ID')}
+                    {formatRupiah(totalPrice)}
                   </strong>
                 </div>
 
                 <button
-                  className="checkout-btn"
-                  onClick={() => {
-                    setShowCart(false)
-                    setShowCheckout(true)
-                  }}
+                  className="checkout-button"
+                  onClick={openCheckout}
                 >
-                  Checkout →
+                  Checkout
                 </button>
               </>
             )}
@@ -380,61 +595,426 @@ function App() {
         </div>
       )}
 
-      {/* CHECKOUT POP-UP */}
+      {/* =========================
+          CHECKOUT
+      ========================= */}
+
       {showCheckout && (
-        <div className="modal-overlay">
+        <div className="overlay">
           <div className="checkout-modal">
 
             <button
-              className="close-modal"
-              onClick={() => setShowCheckout(false)}
+              className="close-button"
+              onClick={() =>
+                setShowCheckout(false)
+              }
             >
-              ✕
+              ×
             </button>
 
-            <h2>Checkout 🍰</h2>
+            <h2>
+              Checkout
+            </h2>
 
-            <p className="modal-subtitle">
-              Complete your order
+            <p className="checkout-description">
+              Isi data berikut untuk menyelesaikan pesanan.
             </p>
 
-            <input
-              type="text"
-              placeholder="Nama Lengkap"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-            />
+            <form onSubmit={confirmOrder}>
 
-            <input
-              type="text"
-              placeholder="Nomor WhatsApp"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+              <label>
+                Nama Lengkap
+              </label>
 
-            <textarea
-              placeholder="Alamat Pengiriman"
-              rows="4"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            ></textarea>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(event) =>
+                  setCustomerName(event.target.value)
+                }
+                placeholder="Masukkan nama"
+              />
 
-            <div className="checkout-buttons">
+              <label>
+                Nomor HP
+              </label>
+
+              <input
+                type="tel"
+                value={phone}
+                onChange={(event) =>
+                  setPhone(event.target.value)
+                }
+                placeholder="08xxxxxxxxxx"
+              />
+
+              <label>
+                Alamat
+              </label>
+
+              <textarea
+                value={address}
+                onChange={(event) =>
+                  setAddress(event.target.value)
+                }
+                placeholder="Masukkan alamat lengkap"
+                rows="4"
+              />
+
+              {/* =========================
+                  PAYMENT METHOD
+              ========================= */}
+
+              <div className="payment-method-section">
+                <p className="payment-method-title">
+                  Metode Pembayaran
+                </p>
+
+                <div className="payment-options">
+
+                  {/* E-WALLET */}
+
+                  <label
+                    className={`payment-option ${
+                      paymentMethod === 'E-Wallet'
+                        ? 'active'
+                        : ''
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="E-Wallet"
+                      checked={
+                        paymentMethod === 'E-Wallet'
+                      }
+                      onChange={(event) => {
+                        setPaymentMethod(
+                          event.target.value
+                        )
+                        setPaymentOption('')
+                      }}
+                    />
+
+                    <div>
+                      <strong>
+                        E-Wallet
+                      </strong>
+
+                      <span>
+                        GoPay, OVO, DANA, ShopeePay
+                      </span>
+                    </div>
+                  </label>
+
+                  {paymentMethod === 'E-Wallet' && (
+                    <div className="payment-sub-options">
+                      <p className="payment-sub-title">
+                        Pilih E-Wallet
+                      </p>
+
+                      {[
+                        'GoPay',
+                        'OVO',
+                        'DANA',
+                        'ShopeePay',
+                      ].map((option) => (
+                        <label
+                          key={option}
+                          className={`payment-sub-option ${
+                            paymentOption === option
+                              ? 'active'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentOption"
+                            value={option}
+                            checked={
+                              paymentOption === option
+                            }
+                            onChange={(event) =>
+                              setPaymentOption(
+                                event.target.value
+                              )
+                            }
+                          />
+
+                          <span>
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* TRANSFER BANK */}
+
+                  <label
+                    className={`payment-option ${
+                      paymentMethod === 'Transfer Bank'
+                        ? 'active'
+                        : ''
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="Transfer Bank"
+                      checked={
+                        paymentMethod === 'Transfer Bank'
+                      }
+                      onChange={(event) => {
+                        setPaymentMethod(
+                          event.target.value
+                        )
+                        setPaymentOption('')
+                      }}
+                    />
+
+                    <div>
+                      <strong>
+                        Transfer Bank
+                      </strong>
+
+                      <span>
+                        BCA, BRI, BNI, Mandiri
+                      </span>
+                    </div>
+                  </label>
+
+                  {paymentMethod === 'Transfer Bank' && (
+                    <div className="payment-sub-options">
+                      <p className="payment-sub-title">
+                        Pilih Bank
+                      </p>
+
+                      {[
+                        'BCA',
+                        'BRI',
+                        'BNI',
+                        'Mandiri',
+                      ].map((option) => (
+                        <label
+                          key={option}
+                          className={`payment-sub-option ${
+                            paymentOption === option
+                              ? 'active'
+                              : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentOption"
+                            value={option}
+                            checked={
+                              paymentOption === option
+                            }
+                            onChange={(event) =>
+                              setPaymentOption(
+                                event.target.value
+                              )
+                            }
+                          />
+
+                          <span>
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+              {/* =========================
+                  TOTAL
+              ========================= */}
+
+              <div className="checkout-summary">
+                <span>
+                  Total Pesanan
+                </span>
+
+                <strong>
+                  {formatRupiah(totalPrice)}
+                </strong>
+              </div>
+
               <button
-                className="cancel-btn"
-                onClick={() => setShowCheckout(false)}
-              >
-                Batal
-              </button>
-
-              <button
-                className="confirm-btn"
-                onClick={confirmOrder}
+                type="submit"
+                className="checkout-button"
                 disabled={orderLoading}
               >
                 {orderLoading
-                  ? 'Menyimpan...'
-                  : 'Pesan Sekarang'}
+                  ? 'Memproses...'
+                  : 'Buat Pesanan'}
+              </button>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================
+          RECEIPT
+      ========================= */}
+
+      {receipt && (
+        <div className="overlay receipt-overlay">
+          <div className="receipt-modal">
+
+            <div className="receipt-header">
+              <h2>
+                Desserté
+              </h2>
+
+              <p>
+                STRUK PESANAN
+              </p>
+            </div>
+
+            <div className="receipt-success">
+              ✓ Pesanan berhasil dibuat!
+            </div>
+
+            <div className="receipt-info">
+
+              <div>
+                <span>
+                  No. Pesanan
+                </span>
+
+                <strong>
+                  #{receipt.id}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Nama
+                </span>
+
+                <strong>
+                  {receipt.customer_name}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  No. HP
+                </span>
+
+                <strong>
+                  {receipt.phone}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Alamat
+                </span>
+
+                <strong>
+                  {receipt.address}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Payment
+                </span>
+
+                <strong>
+                  {receipt.payment_method}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Payment Option
+                </span>
+
+                <strong>
+                  {receipt.payment_option}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Status
+                </span>
+
+                <strong>
+                  {receipt.status}
+                </strong>
+              </div>
+
+            </div>
+
+            <div className="receipt-line"></div>
+
+            <div className="receipt-products">
+              {(receipt.items || []).map(
+                (item, index) => (
+                  <div
+                    className="receipt-product"
+                    key={`${item.product_id}-${index}`}
+                  >
+                    <div>
+                      <strong>
+                        {item.product_name}
+                      </strong>
+
+                      <p>
+                        {item.quantity} ×{' '}
+                        {formatRupiah(
+                          item.unit_price
+                        )}
+                      </p>
+                    </div>
+
+                    <strong>
+                      {formatRupiah(
+                        item.subtotal
+                      )}
+                    </strong>
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="receipt-line"></div>
+
+            <div className="receipt-total">
+              <span>
+                Total
+              </span>
+
+              <strong>
+                {formatRupiah(receipt.total)}
+              </strong>
+            </div>
+
+            <p className="receipt-thanks">
+              Terima kasih sudah memesan di Desserté ♡
+            </p>
+
+            <div className="receipt-actions">
+              <button
+                className="print-button"
+                onClick={printReceipt}
+              >
+                🖨 Cetak Struk
+              </button>
+
+              <button
+                className="close-receipt-button"
+                onClick={closeReceipt}
+              >
+                Selesai
               </button>
             </div>
 
@@ -442,12 +1022,7 @@ function App() {
         </div>
       )}
 
-      {/* FOOTER */}
-      <footer id="contact">
-        <h2>Desserté</h2>
-        <p>Sweetness in every bite 🍰</p>
-      </footer>
-    </>
+    </div>
   )
 }
 
